@@ -66,6 +66,7 @@ const MAX_LOGIN_ATTEMPTS = 3;
 const LOCK_TIME = 30; // seconds
 
 // REGISTER
+// Handles user registration: validates input, hashes password and sets JWT cookie
 export const register = async (req, res, next) => {
   try {
     const { name, email, password } = req.body;
@@ -84,6 +85,7 @@ export const register = async (req, res, next) => {
 
     const token = generateToken({ id: user._id, role: user.role });
 
+    // Store JWT in browser cookie (7 days)
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7d
@@ -97,6 +99,7 @@ export const register = async (req, res, next) => {
 
 
 // LOGIN
+// Implements login rate-limiting using Redis + password verification
 export const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -104,7 +107,7 @@ export const login = async (req, res, next) => {
     const attemptsKey = `login_attempts:${email}`;
     const lockKey = `login_lock:${email}`;
 
-    // 1. Check lock
+    // 1. Check lock: blocks login if too many failed attempts
     const isLocked = await redisClient.get(lockKey);
     if (isLocked) {
       return res.status(429).render("pages/login", {
@@ -114,12 +117,12 @@ export const login = async (req, res, next) => {
 
     const user = await User.findOne({ email });
 
-    // If user not found → treat like wrong password
+    // If user not found → count as failed attempt
     if (!user) {
       const attempts = await redisClient.incr(attemptsKey);
 
       if (attempts === 1) {
-        await redisClient.expire(attemptsKey, 60); // auto-reset after 60 sec
+        await redisClient.expire(attemptsKey, 60); // reset after 60 sec
       }
 
       if (attempts >= MAX_LOGIN_ATTEMPTS) {
@@ -135,7 +138,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Check password
+    // Check password correctness
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       const attempts = await redisClient.incr(attemptsKey);
@@ -157,12 +160,13 @@ export const login = async (req, res, next) => {
       });
     }
 
-    // Successful login → reset attempts + lock
+    // Successful login → reset locks & attempts
     await redisClient.del(attemptsKey);
     await redisClient.del(lockKey);
 
     const token = generateToken({ id: user._id, role: user.role });
 
+    // Set fresh JWT cookie
     res.cookie(COOKIE_NAME, token, {
       httpOnly: true,
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -176,6 +180,7 @@ export const login = async (req, res, next) => {
 
 
 // LOGOUT
+// Clears JWT cookie and redirects user to login page
 export const logout = (req, res) => {
   res.clearCookie(COOKIE_NAME);
   res.redirect("/auth/login");
