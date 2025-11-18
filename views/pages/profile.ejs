@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Your Profile</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        /* Base style reset and body */
+        body {
+            margin: 0; padding: 0;
+            background: #f9fafb;
+            font-family: 'Inter', sans-serif;
+            color: #333;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        /* Header nav styling */
+        header {
+            width: 100%;
+            max-width: 1100px;
+            padding: 15px 30px;
+            margin-bottom: 40px;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+            user-select: none;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 24px;
+            align-items: center;
+            justify-content: center;
+        }
+        nav a {
+            color: #555;
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 18px;
+            border-radius: 28px;
+            background: #eee;
+            transition: background-color 0.25s ease, color 0.25s ease;
+            box-shadow: 0 0 0 transparent;
+        }
+        nav a:hover {
+            background-color: #ddb892;
+            color: #3d2b1f;
+            box-shadow: 0 0 10px #d6bea0;
+        }
+        nav span {
+            font-weight: 600;
+            color: #8b6e4a;
+            font-size: 1rem;
+            letter-spacing: 0.04em;
+        }
+
+        /* Main container */
+        main {
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 4px 24px rgba(174, 149, 107, 0.3);
+            padding: 28px 36px;
+            user-select: none;
+        }
+
+        /* Welcome heading */
+        h1 {
+            font-weight: 700;
+            font-size: 2.8rem;
+            margin-bottom: 10px;
+            color: #46392e;
+            text-align: center;
+        }
+
+        /* Subheading */
+        h2 {
+            font-weight: 600;
+            font-size: 1.7rem;
+            color: #7f7053;
+            margin: 20px 0 28px;
+            border-bottom: 2px solid #d6bea0;
+            padding-bottom: 8px;
+            text-align: center;
+        }
+
+        /* No bookings message */
+        p.no-bookings {
+            font-size: 1.1rem;
+            color: #a19381;
+            font-style: italic;
+            text-align: center;
+            padding: 36px 0;
+        }
+
+        /* Booking card */
+        .booking-card {
+            background: #f7f3ed;
+            border-radius: 18px;
+            padding: 20px 28px;
+            margin: 15px 0;
+            box-shadow: 0 4px 12px rgba(135, 116, 82, 0.2);
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            transition: box-shadow 0.3s ease;
+        }
+        .booking-card:hover {
+            box-shadow: 0 8px 25px rgba(135, 116, 82, 0.35);
+        }
+
+        /* Booking details layout */
+        .booking-info {
+            flex: 1 1 320px;
+            min-width: 260px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #5b4b34;
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 8px 16px;
+        }
+        .booking-info strong {
+            color: #a68b54;
+            letter-spacing: 0.04em;
+        }
+
+        /* Cancel button */
+        .cancelBtn {
+            background: #a68b54;
+            border: none;
+            border-radius: 30px;
+            padding: 10px 24px;
+            cursor: pointer;
+            font-weight: 700;
+            color: #fff;
+            transition: background-color 0.25s ease, box-shadow 0.25s ease;
+            box-shadow: 0 4px 15px rgba(166, 139, 84, 0.6);
+        }
+        .cancelBtn:hover {
+            background-color: #bca56f;
+            box-shadow: 0 6px 18px rgba(188, 165, 111, 0.8);
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 650px) {
+            main {
+                padding: 24px 20px;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.3rem;
+                margin-bottom: 22px;
+            }
+            .booking-info {
+                grid-template-columns: 1fr;
+                gap: 6px 0;
+            }
+            .booking-card {
+                flex-direction: column;
+                gap: 18px;
+            }
+            .cancelBtn {
+                width: 100%;
+                padding: 14px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+  <%- include('../partials/header', { user: user }) %>
+
+  <main>
+    <h1>Welcome, <%= user.name %></h1>
+    <h2>Your Bookings:</h2>
+
+    <% if (bookings.length === 0) { %>
+      <p class="no-bookings">You haven't booked any movies yet.</p>
+    <% } else { %>
+      <% bookings.forEach(booking => { %>
+        <div class="booking-card" aria-label="Booking for <%= booking.movie.title %>">
+          <div class="booking-info">
+            <strong>Movie:</strong><span><%= booking.movie.title %></span>
+            <strong>Seats:</strong><span><%= booking.seats.join(", ") %></span>
+            <strong>Total:</strong><span>₹<%= booking.totalPrice %></span>
+          </div>
+          <button class="cancelBtn" data-id="<%= booking._id %>">Cancel</button>
+        </div>
+      <% }) %>
+    <% } %>
+  </main>
+
+  <script>
+  document.querySelectorAll('.cancelBtn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const bookingId = btn.dataset.id;
+      if (!confirm("Are you sure you want to cancel this booking?")) return;
+
+      try {
+        const res = await fetch(`/api/bookings/cancel/${bookingId}`, {
+          method: "DELETE",
+          credentials: "same-origin"
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert(data.message);
+          window.location.reload();
+        } else {
+          alert(data.message || "Failed to cancel");
+        }
+      } catch (err) {
+        console.error(err);
+        alert("Error cancelling booking");
+      }
+    });
+  });
+  </script>
+</body>
+</html>

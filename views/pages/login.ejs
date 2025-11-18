@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Login</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    body {
+      margin: 0; padding: 0;
+      background: #f7f6f2;
+      font-family: 'Inter', sans-serif;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 60px 16px;
+    }
+    header {
+      width: 100%;
+      max-width: 1000px;
+      margin-bottom: 48px;
+      padding: 12px 24px;
+      background: white;
+      box-shadow: 0 3px 14px rgba(0,0,0,0.1);
+      border-radius: 14px;
+    }
+    nav {
+      display: flex;
+      gap: 22px;
+      justify-content: center;
+      flex-wrap: wrap;
+      user-select: none;
+    }
+    nav a {
+      text-decoration: none;
+      color: #555;
+      font-weight: 600;
+      padding: 7px 18px;
+      border-radius: 22px;
+      background: #eee;
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    nav a:hover {
+      background: #bfb18b;
+      color: #3c2f10;
+      box-shadow: 0 0 18px #bfb18b;
+    }
+    nav span {
+      font-weight: 600;
+      font-size: 1rem;
+      color: #7c6e4b;
+      user-select: none;
+    }
+    main {
+      max-width: 420px;
+      width: 100%;
+      padding: 36px 32px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: 0 6px 28px rgba(174, 149, 107, 0.28);
+      user-select: none;
+    }
+    h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      text-align: center;
+      color: #6f5a33;
+      margin-bottom: 28px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+    label {
+      font-weight: 600;
+      color: #5a4b2e;
+      font-size: 1.05rem;
+    }
+    input {
+      border: 1.7px solid #ccc2a1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    input:focus {
+      outline: none;
+      border-color: #ab9963;
+      box-shadow: 0 0 8px rgba(171, 153, 99, 0.8);
+    }
+    button[type="submit"] {
+      background-color: #ab9963;
+      color: #3a2f13;
+      border: none;
+      border-radius: 32px;
+      padding: 14px 0;
+      font-weight: 700;
+      font-size: 1.15rem;
+      cursor: pointer;
+      box-shadow: 0 0 16px #ab9963;
+      transition: background-color 0.3s ease, box-shadow 0.25s ease;
+    }
+    button[type="submit"]:hover {
+      background-color: #c3b07a;
+      box-shadow: 0 0 28px #c3b07a;
+    }
+    p.error {
+      text-align: center;
+      color: #d34444;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+    @media (max-width: 480px) {
+      main {
+        padding: 28px 20px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('../partials/header', { user: null }) %>
+  <main>
+    <h1>Login</h1>
+    <% if (typeof error !== 'undefined') { %>
+      <p class="error"><%= error %></p>
+    <% } %>
+    <form method="POST" action="/auth/login">
+      <label>Email</label>
+      <input type="email" name="email" required />
+      <label>Password</label>
+      <input type="password" name="password" required />
+      <button type="submit">Login</button>
+    </form>
+  </main>
+</body>
+</html>

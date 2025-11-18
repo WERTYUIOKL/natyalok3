@@ -1,0 +1,4 @@
+Install these dependencies:
+
+npm install express ejs mongoose dotenv bcryptjs jsonwebtoken cookie-parser nodemailer socket.io pdfkit
+npm install --save-dev nodemon

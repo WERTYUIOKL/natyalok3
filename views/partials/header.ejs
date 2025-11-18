@@ -1,0 +1,42 @@
+<header>
+    <style>
+      header nav {
+        display: flex;
+        align-items: center;
+        justify-content: center; /* horizontally centers nav links */
+        gap: 25px; /* space between all nav items */
+        font-weight: 600;
+        user-select: none;
+      }
+      header nav a {
+        color: #4e443c;  /* warm brown */
+        text-decoration: none;
+        padding: 6px 12px;
+        border-radius: 8px;
+        transition: color 0.3s ease, background-color 0.3s ease;
+      }
+      header nav a:hover {
+        background-color: #d8c989;
+        color: #3e3623;
+      }
+      header nav span {
+        color: #4e443c;  /* warm brown */
+        font-weight: 700;
+        margin-left: 12px; /* slight space to left */
+        user-select: none;
+      }
+    </style>
+  
+    <nav>
+      <a href="/movies">Natyalok</a>
+      <% if (user) { %>
+        <a href="/profile">Profile</a>
+        <span>Welcome, <%= user.name %></span>
+        <a href="/auth/logout">Logout</a>
+      <% } else { %>
+        <a href="/auth/login">Login</a>
+        <a href="/auth/register">Register</a>
+      <% } %>
+    </nav>
+  </header>
+  

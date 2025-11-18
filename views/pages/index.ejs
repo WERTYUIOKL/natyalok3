@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Natyalok Home</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+  * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  body, html {
+    height: 100%;
+    font-family: 'Poppins', sans-serif;
+  }
+
+  .container {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+  }
+
+  /* Left brown side */
+  .left {
+    flex: 1;
+    background: linear-gradient(180deg, #d2b48c 0%, #a67c52 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #fff;
+    flex-direction: column;
+  }
+
+  .logo {
+    font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-align: center;
+  }
+
+  .logo span.hindi {
+    font-family: 'Noto Sans Devanagari', sans-serif;
+  }
+
+  /* Right white side */
+  .right {
+    flex: 1;
+    background-color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .nav-links a {
+    text-decoration: none;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #a67c52;
+    padding: 10px 20px;
+    border: 2px solid #a67c52;
+    border-radius: 30px;
+    transition: all 0.3s ease;
+    text-align: center;
+  }
+
+  .nav-links a:hover {
+    background-color: #a67c52;
+    color: #fff;
+    transform: scale(1.05);
+  }
+
+  /* Responsive */
+  @media(max-width: 768px) {
+    .container {
+      flex-direction: column;
+    }
+    .left, .right {
+      flex: unset;
+      height: 50%;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="left">
+    <div class="logo">
+      Natya<span class="hindi">लोक</span>
+      <% if (typeof visitCount !== "undefined") { %>
+        <p style="margin-top:10px; color: gray;">
+          👀 Total visits to this site: <strong><%= visitCount %></strong>
+        </p>
+      <% } %>
+      
+    </div>
+  </div>
+  <div class="right">
+    <div class="nav-links">
+      <a href="/movies">Movies</a>
+      <a href="/auth/login">Login</a>
+      <a href="/auth/register">Register</a>
+      <a href="/about">About</a>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

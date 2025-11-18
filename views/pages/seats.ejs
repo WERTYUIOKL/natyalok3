@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Seats - <%= movie.title %></title>
+  <script src="/socket.io/socket.io.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+    /* Reset and base */
+    * {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin: 0; padding: 0;
+      height: 100%;
+      min-height: 100vh;
+      font-family: 'Inter', sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: linear-gradient(135deg, #f8f7f2, #d8cba3);
+      color: #46392e;
+      overflow-x: hidden;
+      padding: 20px;
+    }
+
+    /* Header Nav */
+    header {
+      width: 100%;
+      max-width: 1100px;
+      padding: 14px 26px;
+      margin-bottom: 36px;
+      border-radius: 12px;
+      background: white;
+      box-shadow: 0 5px 22px rgba(166, 139, 84, 0.3);
+      user-select: none;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 26px;
+      flex-wrap: wrap;
+      color: #6f5a33;
+      font-weight: 600;
+    }
+    header a {
+      text-decoration: none;
+      color: #6f5a33;
+      padding: 8px 20px;
+      border-radius: 28px;
+      background: #f1e6bf;
+      box-shadow: 0 0 10px transparent;
+      font-weight: 600;
+      transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    header a:hover {
+      background-color: #a68b54;
+      box-shadow: 0 0 18px #a68b54;
+      color: #fffaf0;
+    }
+    header span {
+      user-select: none;
+      font-weight: 700;
+      font-size: 1rem;
+      color: #7f6e47;
+    }
+
+    /* Title */
+    h1 {
+      font-weight: 700;
+      font-size: 2.8rem;
+      margin-bottom: 40px;
+      letter-spacing: 4px;
+      user-select: none;
+      text-align: center;
+      color: #7f6e47;
+      max-width: 1100px;
+      width: 100%;
+    }
+
+    /* Screen banner */
+    #screen {
+      width: 90%;
+      max-width: 850px;
+      height: 36px;
+      margin: 0 auto 36px;
+      background: linear-gradient(130deg, #f4f0db, #cdbf7f);
+      border-radius: 0 0 55% 55%;
+      box-shadow: 0 8px 30px rgba(196, 174, 119, 0.8);
+      position: relative;
+    }
+    #screen::after {
+      content: "SCREEN";
+      position: absolute;
+      width: 100%;
+      top: 7px;
+      font-weight: 700;
+      color: #52462f;
+      font-size: 1.15rem;
+      letter-spacing: 5px;
+      text-align: center;
+      user-select: none;
+      text-shadow: none;
+    }
+
+    /* Seat map container */
+    #seat-map {
+      background: #f7f5ea;
+      border-radius: 28px;
+      box-shadow: 0 8px 32px rgba(166, 139, 84, 0.6);
+      padding: 40px 60px;
+      max-width: 900px;
+      width: 100%;
+      user-select: none;
+    }
+
+    /* Rows layout */
+    .row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+      user-select: none;
+    }
+
+    .row-label {
+      color: #a38a50;
+      font-weight: 700;
+      font-size: 1.25rem;
+      margin-right: 14px;
+      user-select: none;
+      min-width: 30px;
+      text-align: right;
+      letter-spacing: 2px;
+      align-self: center;
+    }
+
+    /* Seat buttons */
+    .seat {
+      position: relative;
+      min-width: 46px;
+      min-height: 44px;
+      margin: 5px 8px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 1rem;
+      border: 2px solid transparent;
+      text-align: center;
+      line-height: 40px;
+      cursor: pointer;
+      transition: 
+        background-color 0.3s ease,
+        box-shadow 0.3s ease,
+        transform 0.2s ease,
+        border-color 0.3s ease;
+      color: #46392e;
+      background: #f0e9d2;
+      box-shadow: inset 0 -3px 6px #fff9d1;
+    }
+    /* Tooltip */
+    .seat[data-tooltip]:hover::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      bottom: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(82, 70, 47, 0.85);
+      color: #f8f1cf;
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      white-space: nowrap;
+      border-radius: 8px;
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      z-index: 1000;
+      box-shadow: 0 0 12px #a38a50;
+      user-select: none;
+    }
+    .seat[data-tooltip]::after {
+      content: "";
+      opacity: 0;
+    }
+
+    /* Seat States */
+    .seat.available {
+      background-color: #a6c48a;
+      border-color: #88a35a;
+      box-shadow: 0 0 8px #7f9545;
+      color: #3a4525;
+    }
+    .seat.available:hover {
+      background-color: #91b04d;
+      box-shadow: 0 0 20px #7f9545;
+      color: white;
+      transform: scale(1.15);
+      border-color: #7f9545;
+    }
+
+    .seat.selected {
+      background-color: #f7d76c;
+      border-color: #bda22f;
+      color: #4b3c0a;
+      font-weight: 900;
+      box-shadow: 0 0 22px #bda22f, inset 0 0 14px #d6c462;
+      transform: scale(1.2);
+      text-shadow: 0 0 8px #bda22f;
+      cursor: pointer;
+    }
+    .seat.selected:hover {
+      box-shadow: 0 0 32px #b99f15, inset 0 0 16px #dbc86a;
+    }
+
+    .seat.booked {
+      background: #775540;
+      border-color: #4f3a26;
+      color: #bfb1a2;
+      cursor: not-allowed;
+      box-shadow: inset 0 0 10px #4f3a26;
+    }
+    .seat.locked {
+      background: #6c5740;
+      border-color: #453720;
+      color: #cec2a7;
+      cursor: not-allowed;
+      opacity: 0.85;
+      box-shadow: none;
+    }
+    .seat.pending {
+      background: #d3b961;
+      border-color: #a79640;
+      color: #4b3c0a;
+      cursor: wait;
+      box-shadow: 0 0 18px #bda82a;
+      font-weight: 700;
+    }
+
+    /* Seat labels on top */
+    #seat-map::before {
+      content: attr(data-seat-labels);
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      padding: 0 60px 12px 60px;
+      margin-bottom: 18px;
+      color: #a38a50;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1.5px;
+      user-select: none;
+    }
+
+    /* Controls footer */
+    #price-button-container {
+      margin-top: 42px;
+      background: #fff7c9;
+      border-radius: 22px;
+      padding: 22px 32px;
+      box-shadow: 0 0 38px #bda82a88;
+      display: flex;
+      max-width: 360px;
+      width: 100%;
+      justify-content: center;
+      gap: 46px;
+      user-select: none;
+    }
+    #totalPrice {
+      font-size: 1.8rem;
+      font-weight: 900;
+      color: #bda82a;
+      text-shadow: 0 0 17px #d6ca48;
+    }
+    #confirmBookingBtn {
+      background: linear-gradient(90deg, #f7d76c, #bda22f);
+      border: none;
+      border-radius: 32px;
+      padding: 16px 38px;
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #4b3c0a;
+      cursor: pointer;
+      box-shadow: 0 0 24px #bda82f;
+      transition: all 0.3s ease;
+    }
+    #confirmBookingBtn:hover {
+      background: linear-gradient(90deg, #bda22f, #f7d76c);
+      box-shadow: 0 0 38px #d6ca48;
+      transform: scale(1.07);
+    }
+
+    /* Notification popup */
+    #booking-notification {
+      position: fixed;
+      top: 22px;
+      right: 22px;
+      background: #a9b593;
+      color: #423910;
+      padding: 18px 34px;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px #756e3acc;
+      display: none;
+      z-index: 5000;
+      user-select: none;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.2rem;
+      }
+      #seat-map {
+        padding: 30px 24px;
+      }
+      .seat {
+        min-width: 38px;
+        min-height: 38px;
+        margin: 4px 6px;
+        font-size: 0.95rem;
+      }
+      #price-button-container {
+        max-width: 95vw;
+        gap: 22px;
+        flex-wrap: wrap;
+      }
+      #confirmBookingBtn {
+        width: 100%;
+        padding: 14px 0;
+      }
+    }
+  </style>
+</head>
+<body data-movie-id="<%= movie._id %>" data-user-id="<%= (user && user._id) ? user._id : 'guest' %>">
+
+  <header>
+    <nav>
+      <a href="/movies">Natyalok</a>
+      <% if (user) { %>
+        <a href="/profile">Profile</a>
+        <span>Welcome, <%= user.name %></span>
+        <a href="/auth/logout">Logout</a>
+      <% } else { %>
+        <a href="/auth/login">Login</a>
+        <a href="/auth/register">Register</a>
+      <% } %>
+    </nav>
+  </header>
+
+  <h1><%= movie.title %> — Select Seats</h1>
+
+  <div id="screen"></div>
+
+  <div id="seat-map" data-seat-labels="1 2 3 4 5 6 7 8 9 10">
+    <% movie.seats.forEach((row, rowIndex) => { %>
+      <div class="row" aria-label="Row <%= String.fromCharCode(65 + rowIndex) %>">
+        <span class="row-label"><%= String.fromCharCode(65 + rowIndex) %></span>
+        <% row.forEach(seat => { %>
+          <button 
+            class="seat <%= seat.status %>" 
+            data-seat="<%= seat.label %>"
+            data-tooltip="Seat <%= seat.label %> - <%= seat.status.charAt(0).toUpperCase() + seat.status.slice(1) %>"
+            aria-label="Seat <%= seat.label %> - <%= seat.status %>"
+            <% if (seat.status === 'locked' || seat.status === 'booked') { %>disabled<% } %>
+          >
+            <%= seat.label %>
+          </button>
+        <% }) %>
+      </div>
+    <% }) %>
+  </div>
+
+  <div id="price-button-container">
+    <span>Total: ₹<span id="totalPrice">0</span></span>
+    <button id="confirmBookingBtn">Pay ₹0 (Demo)</button>
+  </div>
+
+  <div id="booking-notification">Booking Confirmed! Check your email.</div>
+
+  <script>
+    const movieId = document.body.dataset.movieId;
+    const userId = document.body.dataset.userId;
+    const socket = io();
+    const pricePerSeat = 200;
+
+    socket.emit("join:movie", { movieId });
+
+    const selectedSeats = new Set();
+    const totalPriceEl = document.getElementById("totalPrice");
+    const confirmBtn = document.getElementById("confirmBookingBtn");
+    const bookingPopup = document.getElementById("booking-notification");
+
+    function updatePrice() {
+      const total = selectedSeats.size * pricePerSeat;
+      totalPriceEl.textContent = total;
+      confirmBtn.textContent = `Pay ₹${total} (Demo)`;
+    }
+
+    document.querySelectorAll('.seat.available').forEach(button => {
+      button.addEventListener('click', () => {
+        const seatLabel = button.dataset.seat;
+        const isSelected = button.classList.toggle('selected');
+        if (isSelected) {
+          selectedSeats.add(seatLabel);
+          socket.emit('seat:lock', { movieId, seats: [seatLabel], userId });
+        } else {
+          selectedSeats.delete(seatLabel);
+          socket.emit('seat:unlock', { movieId, seats: [seatLabel], userId });
+        }
+        updatePrice();
+      });
+    });
+
+    socket.on('seat:update', ({ type, seats, by }) => {
+      if (by === userId) return;
+      seats.forEach(label => {
+        const el = document.querySelector(`[data-seat="${label}"]`);
+        if (!el) return;
+        el.disabled = (type === 'lock' || type === 'book');
+        el.classList.remove('available', 'selected', 'pending', 'locked', 'booked');
+        if (type === 'lock') el.classList.add('locked');
+        if (type === 'unlock') el.classList.add('available');
+        if (type === 'book') el.classList.add('booked');
+      });
+    });
+
+    confirmBtn.addEventListener('click', async () => {
+      if (selectedSeats.size === 0) {
+        alert("Please select at least one seat!");
+        return;
+      }
+      selectedSeats.forEach(label => {
+        const el = document.querySelector(`[data-seat="${label}"]`);
+        el.classList.remove('selected');
+        el.classList.add('pending');
+        el.disabled = true;
+      });
+
+      try {
+        const response = await fetch(`/api/bookings/pay-demo`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: JSON.stringify({ movieId, seats: Array.from(selectedSeats) })
+        });
+        const data = await response.json();
+        if (response.ok) {
+          selectedSeats.forEach(label => {
+            const el = document.querySelector(`[data-seat="${label}"]`);
+            el.classList.remove('pending');
+            el.classList.add('booked');
+          });
+          bookingPopup.style.display = "block";
+          setTimeout(() => bookingPopup.style.display = "none", 4000);
+          setTimeout(() => window.location.href = "/", 4500);
+        } else {
+          selectedSeats.forEach(label => {
+            const el = document.querySelector(`[data-seat="${label}"]`);
+            el.classList.remove('pending');
+            el.classList.add('available');
+            el.disabled = false;
+          });
+          if (data.message) alert(data.message);
+        }
+      } catch (err) {
+        console.error(err);
+        selectedSeats.forEach(label => {
+          const el = document.querySelector(`[data-seat="${label}"]`);
+          el.classList.remove('pending');
+          el.classList.add('available');
+          el.disabled = false;
+        });
+        alert("An unexpected error occurred. Please try again.");
+      }
+    });
+    // Store last visited movie info
+  const movieData = {
+    id: "<%= movie._id || movie.imdbID %>",
+    title: "<%= movie.title %>",
+    poster: "<%= movie.poster || movie.posterUrl %>"
+  };
+
+  localStorage.setItem("last_viewed_movie", JSON.stringify(movieData));
+  </script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+.seat { padding:8px;margin:4px;border-radius:4px; }
+.seat.available { background:#f0f0f0; cursor:pointer; }
+.seat.locked { background:#ffcccb; cursor:not-allowed; }
+.seat.booked { background:#888; color:#fff; cursor:not-allowed; }
+.seat.selected { outline: 2px solid green; }
+.row { margin-bottom:8px; }
+.booked { background: #444; color: #fff; cursor: not-allowed; }
+header nav a {
+    color: #4e443c;        /* Change link color */
+    margin-right: 18px;    /* Add horizontal spacing */
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.3s ease;
+  }
+  
+  header nav a:last-child {
+    margin-right: 0;       /* Remove margin after last link */
+  }
+  
+  header nav span {
+    color: #4e443c;        /* Also change text inside span */
+    margin-left: 16px;     /* Optional: some spacing before user name */
+    font-weight: 600;
+  }
+  
