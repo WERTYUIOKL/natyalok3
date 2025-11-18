@@ -3,7 +3,7 @@ import Movie from "../models/Movie.js";
 import { sendEmail } from "../utils/emailService.js";
 import { publish } from "../utils/redisPubSub.js";
 
-// Confirm booking
+// confirmBooking: handles seat validation, booking creation, and notifications
 export const confirmBooking = async (req, res, internalCall = false) => {
   try {
     const movieId = req.body.movieId;
@@ -21,6 +21,7 @@ export const confirmBooking = async (req, res, internalCall = false) => {
       return res.status(404).json({ message: "Movie not found" });
     }
 
+    // Check if any selected seat is already booked or invalid
     const unavailable = seats.filter(label => {
       const seat = movie.seats.flat().find(s => s.label === label);
       return !seat || seat.status === "booked";
@@ -31,7 +32,7 @@ export const confirmBooking = async (req, res, internalCall = false) => {
       return res.status(400).json({ message: `Seats unavailable: ${unavailable.join(", ")}` });
     }
 
-    // Book seats
+    // Update movie seat status → mark selected seats as booked
     movie.seats.forEach(row => {
       row.forEach(seat => {
         if (seats.includes(seat.label)) seat.status = "booked";
@@ -39,28 +40,28 @@ export const confirmBooking = async (req, res, internalCall = false) => {
     });
     await movie.save();
 
-    // Save booking including movieTitle
+    // Store movie title directly with booking (helps in email + logs)
     const pricePerSeat = 200;
     const totalPrice = seats.length * pricePerSeat;
     const booking = await Booking.create({
       user: userId,
       movie: movieId,
-      movieTitle: movie.title,  // <-- store title directly
+      movieTitle: movie.title,
       seats,
       totalPrice,
       bookedAt: new Date()
     });
 
-    // Publish booking created event
-publish("bookingCreated", JSON.stringify({
-  bookingId: booking._id,
-  user: booking.user,
-  movie: booking.movieTitle,
-  seats: booking.seats,
-  totalPrice: booking.totalPrice
-}));
+    // Publish event so other services/components know booking happened
+    publish("bookingCreated", JSON.stringify({
+      bookingId: booking._id,
+      user: booking.user,
+      movie: booking.movieTitle,
+      seats: booking.seats,
+      totalPrice: booking.totalPrice
+    }));
 
-    // Send confirmation email
+    // Send confirmation email to user
     await sendEmail(req.user.email, "Your Natyalok Booking Confirmation",
       `<h1>Booking Confirmed</h1>
        <p>Movie: ${movie.title}</p>
@@ -68,7 +69,7 @@ publish("bookingCreated", JSON.stringify({
        <p>Total: ₹${totalPrice}</p>`
     );
 
-    // Notify via socket
+    // Notify all connected clients for seat updates (real-time update)
     if (!internalCall && req.io) {
       req.io.to(`movie:${movieId}`).emit("seat:update", {
         type: "book",
@@ -87,7 +88,7 @@ publish("bookingCreated", JSON.stringify({
   }
 };
 
-// Cancel booking + send cancellation email
+// cancelBooking: frees seats, deletes record, and notifies via email/socket
 export const cancelBooking = async (req, res) => {
   try {
     const bookingId = req.params.id;
@@ -100,7 +101,7 @@ export const cancelBooking = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to cancel this booking" });
     }
 
-    // Unlock seats in movie
+    // Restore seat status to 'available' after cancellation
     const movie = await Movie.findById(booking.movie);
     if (movie) {
       movie.seats.forEach(row => {
@@ -110,7 +111,6 @@ export const cancelBooking = async (req, res) => {
       });
       await movie.save();
 
-      // Notify clients via socket
       if (req.io) {
         req.io.to(`movie:${movie._id}`).emit("seat:update", {
           type: "unlock",
@@ -120,17 +120,15 @@ export const cancelBooking = async (req, res) => {
       }
     }
 
-    // Delete booking
     await booking.deleteOne();
 
     publish("bookingCancelled", JSON.stringify({
-  bookingId: booking._id,
-  user: booking.user,
-  movie: booking.movieTitle,
-  seats: booking.seats
-}));
+      bookingId: booking._id,
+      user: booking.user,
+      movie: booking.movieTitle,
+      seats: booking.seats
+    }));
 
-    // Send cancellation email using stored movieTitle
     await sendEmail(req.user.email, "Your Natyalok Booking Cancelled",
       `<h1>Booking Cancelled</h1>
        <p>Movie: ${booking.movieTitle}</p>
