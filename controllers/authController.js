@@ -3,7 +3,7 @@
 // import { generateToken } from "../utils/generateToken.js";
 // import dotenv from "dotenv";
 // dotenv.config();
-
+//authcontroller
 // const COOKIE_NAME = process.env.COOKIE_NAME || "natyalok_token";
 
 // export const register = async (req, res, next) => {
