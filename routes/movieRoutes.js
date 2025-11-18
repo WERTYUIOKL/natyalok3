@@ -1,3 +1,4 @@
+//movieroutes.js
 import express from "express";
 import { listMoviesPage, movieSeatsPage } from "../controllers/movieController.js";
 import { searchMovies } from "../services/omdbApi.js"; // <-- OMDb service
