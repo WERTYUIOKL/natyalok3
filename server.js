@@ -67,14 +67,14 @@ const io = initSeatSocket(server);
  */
 subscribe("bookingCreated", (message) => {
   const data = JSON.parse(message);
-  console.log("📩 Booking created event received:", data);
+  console.log(" Booking created event received:", data);
 
   // Added by Ritish: placeholder for server-side notifications or logs
 });
 
 subscribe("bookingCancelled", (message) => {
   const data = JSON.parse(message);
-  console.log("📩 Booking cancelled event received:", data);
+  console.log(" Booking cancelled event received:", data);
 
   // Added by Ritish: potential hook for freeing seats or admin alerts
 });
