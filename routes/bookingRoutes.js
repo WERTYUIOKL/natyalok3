@@ -1,3 +1,4 @@
+//bookingRoutes.js
 // import express from "express";
 // import { confirmBooking, cancelBooking } from "../controllers/bookingController.js";
 // import { protect } from "../middleware/authMiddleware.js";
