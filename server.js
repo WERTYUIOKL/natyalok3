@@ -39,6 +39,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /** Connect to MongoDB before server starts */
+// Added by Ritish: ensuring DB connection is established before app bootstraps
 await connectDB();
 
 const app = express();
@@ -46,9 +47,6 @@ const app = express();
 /**
  * ============================================
  *  HTTPS Server Configuration
- *  - Loads TLS certificate + key
- *  - Creates secure HTTPS server
- *  - Initializes socket connection
  * ============================================
  */
 const httpsOptions = {
@@ -59,33 +57,33 @@ const httpsOptions = {
 const server = https.createServer(httpsOptions, app);
 
 /** Initialize socket.io for real-time seat updates */
+// Added by Ritish: socket instance shared across routes & controllers
 const io = initSeatSocket(server);
 
 /**
  * ============================================
  *  Redis Pub/Sub Events
- *  - Listens for booking events
- *  - Trigger server actions if needed
  * ============================================
  */
 subscribe("bookingCreated", (message) => {
   const data = JSON.parse(message);
   console.log("📩 Booking created event received:", data);
 
-  // You can trigger notifications, logs, or socket updates here
+  // Added by Ritish: placeholder for server-side notifications or logs
 });
 
 subscribe("bookingCancelled", (message) => {
   const data = JSON.parse(message);
   console.log("📩 Booking cancelled event received:", data);
 
-  // Example: notify admins / free seats etc.
+  // Added by Ritish: potential hook for freeing seats or admin alerts
 });
 
 /**
  * Attach socket instance to every request
  * Allows controllers to emit socket events via req.io
  */
+// Added by Ritish: middleware makes socket accessible uniformly
 app.use((req, res, next) => {
   req.io = io;
   next();
@@ -94,7 +92,6 @@ app.use((req, res, next) => {
 /**
  * ============================================
  *  Template Engine Setup
- *  - Using EJS for server-side rendering
  * ============================================
  */
 app.set("view engine", "ejs");
@@ -103,10 +100,6 @@ app.set("views", path.join(__dirname, "views"));
 /**
  * ============================================
  *  Global Middleware
- *  - JSON parser
- *  - URL-encoded parser
- *  - Cookie parser
- *  - Serve static assets (CSS, JS, images)
  * ============================================
  */
 app.use(express.json());
@@ -134,6 +127,7 @@ app.get("/about", (req, res) => {
  * Home Page + Redis Visit Counter
  * - Tracks number of visits using Redis INCR
  */
+// Added by Ritish: tracking visits helps analyze home page traffic
 app.get("/", async (req, res) => {
   const visitCount = await incrementHomeVisits();
   res.render("pages/index", { user: req.user || null, visitCount });
@@ -147,7 +141,8 @@ app.use(errorHandler);
  *  Start HTTPS Server
  * ============================================
  */
+// Added by Ritish: Secure server start log for debugging
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`✅ HTTPS Server running at https://localhost:${PORT}`);
+  console.log(`HTTPS Server running at https://localhost:${PORT}`);
 });
