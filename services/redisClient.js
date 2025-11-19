@@ -1,4 +1,4 @@
-// services/redisClient.js
+// services//redisClient.js
 import { createClient } from "redis";
 import { publish } from "../utils/redisPubSub.js";
 
