@@ -25,7 +25,7 @@ import { Server } from "socket.io";
 export const initSeatSocket = (server) => {
   /**
    * Create a new socket.io server linked to HTTPS/HTTP server.
-   */
+   *//
   const io = new Server(server);
 
   /**
